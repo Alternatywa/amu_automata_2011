@@ -596,9 +596,10 @@ public class TestAutomataOperations extends TestCase {
         assertFalse(zdeterminizowany.accepts("aaa"));
         assertFalse(zdeterminizowany.accepts("inne"));
     }
+
     /**
-    * Test metody Intersection z AutomataOperations na automatach z petlami.
-    */
+     * Test metody Intersection z AutomataOperations na automatach z petlami.
+     */
     public final void testIntersectionSimple() {
 
         AutomatonSpecification automatonA = new NaiveAutomatonSpecification();
@@ -814,5 +815,148 @@ public class TestAutomataOperations extends TestCase {
             NondeterministicAutomatonByThompsonApproach(intersectedAB);
         assertFalse(automatonAB.accepts("a"));
         assertFalse(automatonAB.accepts(""));
+    }
+
+    /**
+     * Test complementLanguageAutomaton() dla automatu "pustego".
+     */
+    public final void testComplementLanguageAutomaton0EmptyAutomaton() {
+        DeterministicAutomatonSpecification pustyOjciec = new
+                NaiveDeterministicAutomatonSpecification();
+
+        State q0 = pustyOjciec.addState();
+        pustyOjciec.addLoop(q0, new CharTransitionLabel('a'));
+        pustyOjciec.markAsInitial(q0);
+        HashSet<Character> zbior = new HashSet<Character>();
+        zbior.add('a');
+        zbior.add('b');
+        zbior.add('c');
+
+        AutomatonByRecursion pusteDziecko = new
+         AutomatonByRecursion(AutomataOperations.complementLanguageAutomaton(pustyOjciec, zbior));
+
+        assertTrue(pusteDziecko.accepts("a"));
+        assertTrue(pusteDziecko.accepts("abba"));
+        assertTrue(pusteDziecko.accepts(""));
+        assertTrue(pusteDziecko.accepts("cc"));
+        assertFalse(pusteDziecko.accepts("dd"));
+    }
+
+    /**
+     * Test complementLanguageAutomaton() dla automatu akceptującego dziwne "a".
+     */
+    public final void testComplementLanguageAutomaton1StrangeAAutomaton() {
+        DeterministicAutomatonSpecification autLucas = new
+                NaiveDeterministicAutomatonSpecification();
+
+        State q0 = autLucas.addState();
+        State q1 = autLucas.addState();
+        State q2 = autLucas.addState();
+        State q3 = autLucas.addState();
+        autLucas.addTransition(q0, q1, new CharTransitionLabel('a'));
+        autLucas.addTransition(q1, q2, new CharTransitionLabel('a'));
+        autLucas.addTransition(q2, q3, new CharTransitionLabel('a'));
+        autLucas.addTransition(q3, q1, new CharTransitionLabel('a'));
+        autLucas.markAsInitial(q0);
+        autLucas.markAsFinal(q2);
+        autLucas.markAsFinal(q3);
+        HashSet<Character> zbior = new HashSet<Character>();
+        zbior.add('a');
+
+        AutomatonByRecursion autLucasBR = new
+            AutomatonByRecursion(AutomataOperations.complementLanguageAutomaton(autLucas, zbior));
+
+        assertTrue(autLucasBR.accepts(""));
+        assertTrue(autLucasBR.accepts("a"));
+        assertTrue(autLucasBR.accepts("aaaa"));
+        assertFalse(autLucasBR.accepts("aa"));
+        assertFalse(autLucasBR.accepts("aaa"));
+    }
+
+    /**
+     * Test complementLanguageAutomaton() dla automatu akceptującego "ab" i "ba".
+     */
+    public final void testComplementLanguageAutomaton2AbBaAutomaton() {
+        DeterministicAutomatonSpecification abba = new NaiveDeterministicAutomatonSpecification();
+
+        State q0 = abba.addState();
+        State qa = abba.addTransition(q0, new CharTransitionLabel('a'));
+        State qb = abba.addTransition(q0, new CharTransitionLabel('b'));
+        State qab = abba.addTransition(qa, new CharTransitionLabel('b'));
+        State qba = abba.addTransition(qb, new CharTransitionLabel('a'));
+        State smietnik = abba.addTransition(qa, new CharTransitionLabel('a'));
+        abba.addTransition(qb, smietnik, new CharTransitionLabel('b'));
+        abba.addTransition(qab, smietnik, new CharTransitionLabel('a'));
+        abba.addTransition(qab, smietnik, new CharTransitionLabel('b'));
+        abba.addTransition(qba, smietnik, new CharTransitionLabel('a'));
+        abba.addTransition(qba, smietnik, new CharTransitionLabel('b'));
+        abba.addLoop(smietnik, new CharTransitionLabel('a'));
+        abba.addLoop(smietnik, new CharTransitionLabel('b'));
+        abba.markAsInitial(q0);
+        abba.markAsFinal(qab);
+        abba.markAsFinal(qba);
+        HashSet<Character> zbior = new HashSet<Character>();
+        zbior.add('a');
+        zbior.add('b');
+
+        AutomatonByRecursion abbaBR = new
+                AutomatonByRecursion(AutomataOperations.complementLanguageAutomaton(abba, zbior));
+
+        assertTrue(abbaBR.accepts(""));
+        assertTrue(abbaBR.accepts("a"));
+        assertTrue(abbaBR.accepts("b"));
+        assertFalse(abbaBR.accepts("ab"));
+        assertFalse(abbaBR.accepts("ba"));
+        assertTrue(abbaBR.accepts("aa"));
+        assertTrue(abbaBR.accepts("bb"));
+        assertTrue(abbaBR.accepts("aba"));
+        assertTrue(abbaBR.accepts("bab"));
+        assertTrue(abbaBR.accepts("abb"));
+        assertTrue(abbaBR.accepts("baa"));
+    }
+
+    /**
+     * Test metody determinize2 na prostym automacie z pokrywającym
+     * się etykietami przejść.
+     */
+    public final void testDeterminize2OverlappingLabels() {
+        AutomatonSpecification spec = new NaiveAutomatonSpecification();
+        State q0 = spec.addState();
+        State q1 = spec.addState();
+        State q2 = spec.addState();
+        State q3 = spec.addState();
+        State q4 = spec.addState();
+
+        spec.markAsInitial(q0);
+        spec.markAsFinal(q3);
+        spec.markAsFinal(q4);
+
+        spec.addTransition(q0, q1, new CharRangeTransitionLabel('a', 'b'));
+        spec.addTransition(q0, q2, new CharRangeTransitionLabel('b', 'c'));
+        spec.addTransition(q1, q3, new CharTransitionLabel('x'));
+        spec.addTransition(q2, q4, new CharTransitionLabel('y'));
+
+        AutomatonByStack automaton = new AutomatonByStack(spec);
+        helperForDeterminize2OverlappingLabels(automaton);
+
+        DeterministicAutomatonSpecification dspec = new NaiveDeterministicAutomatonSpecification();
+        try {
+            AutomataOperations.determinize2(spec, dspec);
+        } catch (StructureException exception) {
+            exception.printStackTrace();
+            throw new RuntimeException(exception);
+        }
+
+        DeterministicAutomaton dautomaton = new DeterministicAutomaton(dspec);
+        helperForDeterminize2OverlappingLabels(dautomaton);
+    }
+
+    private void helperForDeterminize2OverlappingLabels(Acceptor acceptor) {
+        assertTrue(acceptor.accepts("ax"));
+        assertTrue(acceptor.accepts("bx"));
+        assertTrue(acceptor.accepts("by"));
+        assertTrue(acceptor.accepts("cy"));
+        assertFalse(acceptor.accepts("ay"));
+        assertFalse(acceptor.accepts("cx"));
     }
 }
