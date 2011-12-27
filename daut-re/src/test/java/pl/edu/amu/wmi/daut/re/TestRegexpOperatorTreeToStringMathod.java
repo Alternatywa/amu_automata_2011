@@ -8,7 +8,25 @@ import java.util.List;
  */
 public class TestRegexpOperatorTreeToStringMathod extends TestCase {
     /**
-     * Testuje drzewo powstałe z użycia SingleCharacterOPerator - a .
+     * Testuje drzewo powstałe z użycia DoNothingOperator.
+     */
+    public final void TestTreeFromDoNothingOperator() throws Exception{
+
+        List<RegexpOperatorTree> subtrees = new ArrayList<RegexpOperatorTree>();
+
+        SingleCharacterOperator aOp = new SingleCharacterOperator('a');
+        RegexpOperatorTree CharATr = new RegexpOperatorTree(aOp, subtrees);
+
+        DoNothingOperator nothingOp = new DoNothingOperator();
+        subtrees.add(CharATr);
+        RegexpOperatorTree completeTree = new RegexpOperatorTree(nothingOp, subtrees);
+
+       // String Tree = completeTree.ToString();
+       // assertTrue(Tree.equals("pusty ... a lub inny napis"));
+    }
+
+    /**
+     * Testuje drzewo powstałe z użycia SingleCharacterOperator - a .
      */
     public final void TestTreeFromSingleCharacterOperator() throws Exception{
 
@@ -22,7 +40,7 @@ public class TestRegexpOperatorTreeToStringMathod extends TestCase {
     }
 
     /**
-     * Testuje drzewo powstające z urzycia operatora alternatywy - a|b .
+     * Testuje drzewo powstające z użycia operatora alternatywy - a|b .
      */
     public final void testTreeFromAlternativeOperator() throws Exception{
 
@@ -86,7 +104,7 @@ public class TestRegexpOperatorTreeToStringMathod extends TestCase {
         RegexpOperatorTree completeTree = new RegexpOperatorTree(alternativeOp, subtrees);
 
         //String Tree = completeTree.toString();
-       // assertTrue(Tree.equals("alternatywa nizej a i b"));
+       // assertTrue(Tree.equals("drzewko"));
     }
 
 }
